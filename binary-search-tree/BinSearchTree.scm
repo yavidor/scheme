@@ -2,16 +2,16 @@
 (define concat
   (letrec
     ((c-two (lambda (l1 l2)
-      (if (null? l1)
-        l2
-        (with l1 (lambda (a . s)
-          (cons a (c-two s l2)))))))
-    (c-all (lambda (first rest)
-      (if (null? rest)
-        first
-        (with rest (lambda (second . remaining) (c-all (c-two first second) remaining)))))))
-          (lambda (a . s)
-    (c-all a s))))
+              (if (null? l1)
+                l2
+                (with l1 (lambda (a . s)
+                           (cons a (c-two s l2)))))))
+     (c-all (lambda (first rest)
+              (if (null? rest)
+                first
+                (with rest (lambda (second . remaining) (c-all (c-two first second) remaining)))))))
+    (lambda (a . s)
+      (c-all a s))))
 
 ; 1. change the name of this file to BinSearchTree.scm
 ; 2. complete these definitions so they match their documentations, the interface is already set but the implementation is stubbed
@@ -28,7 +28,7 @@
 
 ;; (^leaf v): constructor for node holding v with two empty subtrees
 (define ^leaf
-  (lambda (v) (list v (^empty) (^empty))))
+  (lambda (v) (^node v (^empty) (^empty))))
 
 ;; (get-val t): value stored at node t
 (define get-val car)
@@ -49,100 +49,122 @@
 
 ;; (pre-order t): list of values in node, left, right order
 (define pre-order
-  (lambda (t) 
-    (if (empty? t)
-      '()
-      (concat (list (get-val t)) (pre-order (get-left t)) (pre-order (get-right t))))))
+  (letrec
+    ((p-o (lambda (t) 
+            (if (empty? t)
+              '()
+              (concat (list (get-val t)) (p-o (get-left t)) (p-o (get-right t)))))))
+    p-o))
 
 ;; (in-order t): list of values in left, node, right order (sorted ascending)
 (define in-order
-  (lambda (t)
-    (if (empty? t)
-      '()
-      (concat (in-order (get-left t)) (list (get-val t)) (in-order (get-right t))))))
+  (letrec
+    ((i-o (lambda (t)
+            (if (empty? t)
+              '()
+              (concat (i-o (get-left t)) (list (get-val t)) (i-o (get-right t)))))))
+    i-o))
 
 ;; (post-order t): list of values in left, right, node order
 (define post-order
-  (lambda (t)
-  (if (empty? t)
-    '()
-    (concat (post-order (get-left t)) (post-order (get-right t)) (list (get-val t))))))
+  (letrec
+    ((p-o 
+       (lambda (t)
+         (if (empty? t)
+           '()
+           (concat (p-o (get-left t)) (p-o (get-right t)) (list (get-val t)))))))
+    p-o))
 
-; (add-val t n): new tree with n inserted; duplicates go to the right subtree
-(define add-val
-  (lambda (t n)
-    (let
-      ((v (get-val t))
-      (l (get-left t))
-      (r (get-right t)))
-        (if (empty? t)
-          (^leaf n)
-          (if (leaf? t)
-            (if (> v n)
-              (^node v (^leaf n) (^empty))
-              (^node v (^empty) (^leaf n)))
-            (if (> v n)
-              (^node v (add-val l n) r)
-              (^node v l (add-val r n))))))))
+     ; (add-val t n): new tree with n inserted; duplicates go to the right subtree
+     (define add-val
+       (letrec
+         ((a-v
+       (lambda (t n)
+         (let
+           ((v (get-val t))
+            (l (get-left t))
+            (r (get-right t)))
+           (if (empty? t)
+             (^leaf n)
+             (if (leaf? t)
+               (if (> v n)
+                 (^node v (^leaf n) (^empty))
+                 (^node v (^empty) (^leaf n)))
+               (if (> v n)
+                 (^node v (a-v l n) r)
+                 (^node v l (a-v r n)))))))))
+         a-v))
 
-;; (search t n): #t if n is in t, #f otherwise
-(define search
-  (lambda (t n) '()))
+     ;; (search t n): #t if n is in t, #f otherwise
+     (define search
+       (lambda (t n) '()))
 
-;; (find-min t): smallest value in t (leftmost node); assumes t is non-empty
-(define find-min
-  (lambda (t)
-    (if (empty? (get-left t))
-      (get-val t)
-      (find-min (get-left t)))))
+     ;; (find-min t): smallest value in t (leftmost node); assumes t is non-empty
+     (define find-min
+       (letrec
+         ((f-m
+            (lambda (t)
+              (if (empty? (get-left t))
+                (get-val t)
+                (f-m (get-left t))))))
+         f-m))
 
-;; (find-max t): largest value in t (rightmost node); assumes t is non-empty
- (define find-max
-  (lambda (t)
-    (if (empty? (get-right t))
-      (get-val t)
-      (find-max (get-right t)))))
+     ;; (find-max t): largest value in t (rightmost node); assumes t is non-empty
+     (define find-max
+       (letrec
+         ((f-m
+            (lambda (t)
+              (if (empty? (get-right t))
+                (get-val t)
+                (f-m (get-right t))))))
+         f-m))
 
 ;; (remove-val t n): new tree with first value matching n removed; unchanged if n doesn't exist in t
 ;; if the removed node has a right sub-tree, have the right sub-tree's minimum take its place
 ;; otherwise have the left sub-tree take its place
 (define remove-val
-  (lambda (t n)
-    (let
-      ((v (get-val t))
-      (l (get-left t))
-      (r (get-right t)))
-        (if (empty? t)
-          '()
-          (if (= v n)
-            (^node (get-val r) l (get-right r))
-            (if (> v n)
-              (^node v (remove-val l n) r)
-              (^node v l (remove-val r n))))))))
+  (letrec
+    ((r-v
+       (lambda (t n)
+         (let
+           ((v (get-val t))
+            (l (get-left t))
+            (r (get-right t)))
+           (if (empty? t)
+             '()
+             (if (= v n)
+               (^node (get-val r) l (get-right r))
+               (if (> v n)
+                 (^node v (r-v l n) r)
+                 (^node v l (r-v r n)))))))))
+    r-v))
 
 ;; (remove-all-val t n): new tree with all values matching n removed, if any such exist
 (define remove-all-val
-  (lambda (t n)
-    (let
-      ((v (get-val t))
-      (l (get-left t))
-      (r (get-right t)))
-        (if (empty? t)
-          t
-        (if (= v n)
-          (^node (get-val r) (remove-all-val l n) (remove-all-val (get-right r) n))
-          (^node v (remove-all-val l n) (remove-all-val r n)))))))
+  (letrec
+    ((r-a-v
+       (lambda (t n)
+         (let
+           ((v (get-val t))
+            (l (get-left t))
+            (r (get-right t)))
+           (if (empty? t)
+             t
+             (if (= v n)
+               (^node (get-val r) (r-a-v l n) (r-a-v (get-right r) n))
+               (^node v (r-a-v l n) (r-a-v r n))))))))
+    r-a-v))
 
 ;; (height t): number of nodes on the longest root-to-leaf path; (height (^empty)): 0
 (define height
   (lambda (t)
-     ((letrec
-      ((h 
-        (lambda (t n)
-          (if (empty? t)
-            n
-            (max (h (get-left t) (+ 1 n)) (h (get-right t) (+ 1 n)))))))
-      h) t 0)))
+    ((letrec
+       ((h 
+          (lambda (t n)
+            (if (empty? t)
+              n
+              (max (h (get-left t) (+ 1 n)) (h (get-right t) (+ 1 n)))))))
+       h) t 0)))
 
 ;; (balanced? t): #t if for every node, the difference between its subtrees' heights is at most 1
 (define balanced?
