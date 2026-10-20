@@ -1,4 +1,5 @@
 (define with (lambda (l f) (apply f l)))
+
 (define concat
   (letrec
     ((c-two (lambda (l1 l2)
@@ -21,20 +22,6 @@
             0
             (+ 1 (l-n (cdr l)))))))
     l-n))
-
-(define sublist
-  (letrec
-    ((sl (lambda (l f t)
-          (if
-            (null? l)
-            l
-            (with l (lambda (a . s)
-                     (if (= f 1)
-                       (if(= t 0)
-                         '()
-                         (concat (list a) (sl s f (- t 1))))
-                       (sl s (- f 1) (- t 1)))))))))
-    sl))
 
 ; 1. change the name of this file to BinSearchTree.scm
 ; 2. complete these definitions so they match their documentations, the interface is already set but the implementation is stubbed
@@ -223,7 +210,17 @@
 
 (define balance
   (letrec
-    ((l-t-b-t ;list-to-balanced-tree
+    ((sl (lambda (l f t) ;sublist
+          (if
+            (null? l)
+            l
+            (with l (lambda (a . s)
+                     (if (= f 1)
+                       (if(= t 0)
+                         '()
+                         (concat (list a) (sl s f (- t 1))))
+                       (sl s (- f 1) (- t 1))))))))
+      (l-t-b-t ;list-to-balanced-tree
         (lambda (l)
           (let*
             ((len (list-length l))
