@@ -54,7 +54,10 @@
 
 ;; (leaf? t): #t if t is a node with no children, #f otherwise (including empty tree)
 (define leaf?
-  (lambda (t) (or (empty? t) (and (empty? (get-left t)) (empty? (get-right t))))))
+  (lambda (t)
+    (if (empty? t)
+      #f
+      (and (empty? (get-left t)) (empty? (get-right t))))))
 
 ;; (pre-order t): list of values in node, left, right order
 (define pre-order
@@ -95,13 +98,9 @@
               (r (get-right t)))
             (if (empty? t)
               (^leaf n)
-              (if (leaf? t)
-                (if (> v n)
-                  (^node v (^leaf n) (^empty))
-                  (^node v (^empty) (^leaf n)))
-                (if (> v n)
-                  (^node v (a-v l n) r)
-                  (^node v l (a-v r n)))))))))
+              (if (> v n)
+                (^node v (a-v l n) r)
+                (^node v l (a-v r n))))))))
     a-v))
 
 ;; (search t n): #t if n is in t, #f otherwise
@@ -154,9 +153,11 @@
               (l (get-left t))
               (r (get-right t)))
             (if (empty? t)
-              '()
+              t
               (if (= v n)
-                (^node (get-val r) l (get-right r))
+                (if (empty? r)
+                  l
+                  (^node (find-min r) l (r-v r (find-min r))))
                 (if (> v n)
                   (^node v (r-v l n) r)
                   (^node v l (r-v r n)))))))))
@@ -174,7 +175,9 @@
             (if (empty? t)
               t
               (if (= v n)
-                (^node (get-val r) (r-a-v l n) (r-a-v (get-right r) n))
+                (if (empty? r)
+                  (r-a-v l n)
+                  (r-a-v (^node (find-min r) l (remove-val r (find-min r))) n))
                 (^node v (r-a-v l n) (r-a-v r n))))))))
     r-a-v))
 
@@ -198,36 +201,36 @@
           (let
             ((l (get-left t))
               (r (get-right t)))
-            (if (leaf? t)
+            (if (empty? t)
               #t
-              (if (> (abs (- (min (height l) (height r)) (max (height l) (height r)))) 1)
+              (if (> (abs (- (height l) (height r))) 1)
                 #f
                 (and (b? l) (b? r))))))))
     b?))
 
 ;; (balance t): returns a tree t* for which (and (balanced? t*) (equal? (in-order t) (in-order t*))) is #t,
 ;; and t* has the smallest possible height for its number of values
-
 (define balance
   (letrec
-    ((sl (lambda (l f t) ;sublist
-          (if
-            (null? l)
-            l
-            (with l (lambda (a . s)
-                     (if (= f 1)
-                       (if(= t 0)
-                         '()
-                         (concat (list a) (sl s f (- t 1))))
-                       (sl s (- f 1) (- t 1))))))))
+    ((s (lambda (l n) ;split
+          (if (= n 0)
+            (cons '() l)
+            (let
+              ((r (s (cdr l) (- n 1))))
+              (cons (cons (car l) (car r)) (cdr r))))))
+
       (l-t-b-t ;list-to-balanced-tree
         (lambda (l)
-          (let*
-            ((len (list-length l))
-              (m (+ (quotient len 2) 1))) ;quotient rounds down, I want to round up
-            (if (null? l)
-              (^empty)
-              (^node (car (sublist l m m)) (l-t-b-t (sublist l 1 (- m 1))) (l-t-b-t (sublist l (+ m 1) len)))))))
+          (if (null? l)
+            (^empty)
+            (let*
+              ((m (quotient (list-length l) 2)) ;quotient rounds down, I want to round up
+                (parts (s l m))
+                (first (car parts))
+                (second (cdr parts)))
+              (^node (car second)
+                (l-t-b-t first)
+                (l-t-b-t (cdr second)))))))
       (b
         (lambda (t)
           (l-t-b-t (in-order t)))))
