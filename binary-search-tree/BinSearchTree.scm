@@ -157,7 +157,9 @@
               (if (= v n)
                 (if (empty? r)
                   l
-                  (^node (find-min r) l (r-v r (find-min r))))
+                  (let
+                    ((r-m (find-min r)))
+                    (^node r-m l (r-v r r-m))))
                 (if (> v n)
                   (^node v (r-v l n) r)
                   (^node v l (r-v r n)))))))))
@@ -177,8 +179,12 @@
               (if (= v n)
                 (if (empty? r)
                   (r-a-v l n)
-                  (r-a-v (^node (find-min r) l (remove-val r (find-min r))) n))
-                (^node v (r-a-v l n) (r-a-v r n))))))))
+                  (let
+                    ((r-m (find-min r)))
+                    (r-a-v (^node r-m l (remove-val r r-m)) n)))
+                (if (> v n)
+                  (^node v (r-a-v l n) r)
+                  (^node v l (r-a-v r n)))))))))
     r-a-v))
 
 ;; (height t): number of nodes on the longest root-to-leaf path; (height (^empty)): 0
