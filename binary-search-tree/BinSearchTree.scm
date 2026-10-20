@@ -1,14 +1,4 @@
 (define with (lambda (l f) (apply f l)))
-; Weird how I cannot find an easier way to do it, the only other idea was to do cons with a reversed list and then reverse
-(define append-to-list
-  (letrec
-    ((atl (lambda (l v)
-      (if (null? l)
-        (list v)
-        (with l (lambda (a . s)
-          (cons a (atl s v))))))))
-    atl))
-
 (define concat
   (letrec
     ((c-two (lambda (l1 l2)
@@ -41,16 +31,13 @@
   (lambda (v) (list v (^empty) (^empty))))
 
 ;; (get-val t): value stored at node t
-(define get-val 
-  (lambda (t) (car t)))
+(define get-val car)
 
 ;; (get-left t): left subtree of node t
-(define get-left 
-  (lambda (t) (car (cdr t))))
+(define get-left  cadr)
 
 ;; (get-right t): right subtree of node t
-(define get-right 
-  (lambda (t) (car (cdr (cdr t))))) ;Since cdr returns a pair we need to extract it, therefore the last car
+(define get-right caddr)
 
 ;; (empty? t): #t if t is an empty tree (no values), #f otherwise 
 (define empty? 
