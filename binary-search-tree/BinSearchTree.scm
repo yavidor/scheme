@@ -91,11 +91,17 @@
 
 ;; (find-min t): smallest value in t (leftmost node); assumes t is non-empty
 (define find-min
-  (lambda (t) '()))
+  (lambda (t)
+    (if (empty? (get-left t))
+      (get-val t)
+      (find-min (get-left t)))))
 
 ;; (find-max t): largest value in t (rightmost node); assumes t is non-empty
-(define find-max
-  (lambda (t) '()))
+ (define find-max
+  (lambda (t)
+    (if (empty? (get-right t))
+      (get-val t)
+      (find-max (get-right t)))))
 
 ;; (remove-val t n): new tree with first value matching n removed; unchanged if n doesn't exist in t
 ;; if the removed node has a right sub-tree, have the right sub-tree's minimum take its place
@@ -129,7 +135,14 @@
 
 ;; (height t): number of nodes on the longest root-to-leaf path; (height (^empty)): 0
 (define height
-  (lambda (t) (lambda (t n) '()) t 0)
+  (lambda (t)
+     ((letrec
+      ((h 
+        (lambda (t n)
+          (if (empty? t)
+            n
+            (max (h (get-left t) (+ 1 n)) (h (get-right t) (+ 1 n)))))))
+      h) t 0)))
 
 ;; (balanced? t): #t if for every node, the difference between its subtrees' heights is at most 1
 (define balanced?
