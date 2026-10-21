@@ -92,12 +92,12 @@
   (letrec
     ((a-v
         (lambda (t n)
-          (let
-            ((v (get-val t))
-              (l (get-left t))
-              (r (get-right t)))
-            (if (empty? t)
-              (^leaf n)
+          (if (empty? t)
+            (^leaf n)
+            (let
+              ((v (get-val t))
+                (l (get-left t))
+                (r (get-right t)))
               (if (> v n)
                 (^node v (a-v l n) r)
                 (^node v l (a-v r n))))))))
@@ -108,12 +108,12 @@
   (letrec
     ((s
         (lambda (t n)
-          (let
-            ((v (get-val t))
-              (l (get-left t))
-              (r (get-right t)))
-            (if (empty? t)
-              #f
+          (if (empty? t)
+            #f
+            (let
+              ((v (get-val t))
+                (l (get-left t))
+                (r (get-right t)))
               (if (= v n)
                 #t
                 (if (< v n)
@@ -190,29 +190,30 @@
 ;; (height t): number of nodes on the longest root-to-leaf path; (height (^empty)): 0
 (define height
   (lambda (t)
-    ((letrec
-        ((h
-            (lambda (t n)
-              (if (empty? t)
-                n
-                (max (h (get-left t) (+ 1 n)) (h (get-right t) (+ 1 n)))))))
-        h)
-      t
-      0)))
+    (letrec
+      ((h
+          (lambda (t n)
+            (if (empty? t)
+              n
+              (max (h (get-left t) (+ 1 n)) (h (get-right t) (+ 1 n)))))))
+      (h t 0))))
 
 ;; (balanced? t): #t if for every node, the difference between its subtrees' heights is at most 1
 (define balanced?
-  (letrec
-    ((b? (lambda (t)
-          (let
-            ((l (get-left t))
-              (r (get-right t)))
-            (if (empty? t)
-              #t
-              (if (> (abs (- (height l) (height r))) 1)
-                #f
-                (and (b? l) (b? r))))))))
-    b?))
+  (lambda (t)
+    (letrec
+      ((b? (lambda (node)
+            (if (empty? node)
+              (cons #t 1)
+              (let*
+                ((l (get-left node))
+                  (r (get-right node))
+                  (l-result (b? l))
+                  (r-result (b? r)))
+                (if (and (car l-result) (car r-result) (<= (abs (- (cdr l-result) (cdr r-result))) 1))
+                  (cons #t (+ (max (cdr l-result) (cdr r-result)) 1))
+                  (cons #f (+ (cdr l-result) (cdr r-result)))))))))
+      (car (b? t)))))
 
 ;; (balance t): returns a tree t* for which (and (balanced? t*) (equal? (in-order t) (in-order t*))) is #t,
 ;; and t* has the smallest possible height for its number of values
