@@ -230,7 +230,7 @@
           (if (null? l)
             (^empty)
             (let*
-              ((m (quotient (list-length l) 2)) ;quotient rounds down, I want to round up
+              ((m (quotient (list-length l) 2))
                 (parts (s l m))
                 (first (car parts))
                 (second (cdr parts)))
