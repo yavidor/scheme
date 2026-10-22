@@ -1,5 +1,11 @@
 (define with (lambda (l f) (apply f l)))
 
+(load (let
+       ((dir (path-parent (car (command-line)))))
+       (if (string=? dir "")
+         "../triplet.scm"
+         (string-append dir "../triplet.scm"))))
+
 (define concat
   (letrec
     ((c-two (lambda (l1 l2)
@@ -28,29 +34,30 @@
 ; 3. you can check your work by running `scheme BinSearchTreeTests.scm`
 
 ;; (^empty): constructor for empty tree
-(define ^empty
-  (lambda () (list '() '() '())))
+(define ^empty (lambda () (cons-three nil-three nil-three nil-three)))
 
 ;; (^node v l r): constructor for node holding v with left subtree l and right subtree r
 (define ^node
-  (lambda (v l r) (list v l r)))
+  (lambda (v l r) (cons-three v l r)))
 
 ;; (^leaf v): constructor for node holding v with two empty subtrees
 (define ^leaf
   (lambda (v) (^node v (^empty) (^empty))))
 
 ;; (get-val t): value stored at node t
-(define get-val car)
+(define get-val first)
 
 ;; (get-left t): left subtree of node t
-(define get-left cadr)
+(define get-left second)
 
 ;; (get-right t): right subtree of node t
-(define get-right caddr)
+(define get-right third)
 
 ;; (empty? t): #t if t is an empty tree (no values), #f otherwise
 (define empty?
-  (lambda (t) (null? (car t))))
+  (lambda (t)
+    ; (print-triplet t)
+    (my-null? (get-val t))))
 
 ;; (leaf? t): #t if t is a node with no children, #f otherwise (including empty tree)
 (define leaf?
