@@ -98,7 +98,7 @@
           (if (null? s2)
             s1
             (if (null? s1)
-              (cons (car s2) (lambda () (cq s1 ((cdr s2)))))
+              s2
               (cons (car s1) (lambda () (cq ((cdr s1)) s2))))))))
     cq))
 
@@ -107,14 +107,11 @@
   (letrec
     ((aq
         (lambda (s1 s2)
-          (if (and (null? s1) (null? s2))
-            s1
-            (if (null? s1)
-              (cons (car s2) (lambda () (aq s1 ((cdr s2)))))
-              (if(null? s2)
-                (cons (car s1) (lambda () (aq ((cdr s1)) s2)))
-                (cons (+ (car s1) (car s2)) (lambda() (aq ((cdr s1)) ((cdr s2)))))))))))
-
+          (if (null? s1)
+            s2
+            (if(null? s2)
+              s1
+              (cons (+ (car s1) (car s2)) (lambda() (aq ((cdr s1)) ((cdr s2))))))))))
     aq))
 
 ; (interleaveq s1 s2): returns a sequence of the elements of s1 and s2 interleaved (elements of s1 at even indices and elements of s2 at odd indices), if one sequence ends, continue with the other one
@@ -122,13 +119,11 @@
   (letrec
     ((iq
         (lambda (s1 s2)
-          (if (and (null? s1) (null? s2))
-            s1
-            (if (null? s1)
-              (cons (car s2) (lambda () (iq s1 ((cdr s2)))))
-              (if (null? s2)
-                (cons (car s1) (lambda () (iq ((cdr s1)) s2)))
-                (cons (car s1) (lambda () (iq s2 ((cdr s1))))))))))) ; Switch the positions of the first and second sequences to get the zipper pattern we want
+          (if (null? s1)
+            s2
+            (if (null? s2)
+              s1
+              (cons (car s1) (lambda () (iq s2 ((cdr s1)))))))))) ; Switch the positions of the first and second sequences to get the zipper pattern we want
     iq))
 
 ; (dropq s n): returns a sequence without first n elements of s
