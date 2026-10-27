@@ -20,7 +20,7 @@
   (letrec
     ((r
         (lambda (b e s)
-          (if (> b e)
+          (if (or (and (> s 0) (> b e)) (and (< s 0) (< b e)))
             '()
             (cons b (lambda () (r (+ b s) e s)))))))
     r))
@@ -30,7 +30,7 @@
   (letrec
     ((t
         (lambda (s n)
-          (if (zero? n)
+          (if (or (zero? n) (null? s))
             '()
             (cons (car s) (t ((cdr s)) (- n 1)))))))
     t))
@@ -58,30 +58,85 @@
 
 ; (filterq s p): returns a sequence of the elements of s filtered with predicate p
 (define filterq
-  (lambda (s p) '()))
+  (letrec
+    ((fq
+        (lambda (s p)
+          (if (null? s)
+            s
+            (if (p (car s))
+              (cons (car s) (lambda () (fq ((cdr s)) p)))
+              (fq ((cdr s)) p))))))
+    fq))
 
 ; (foldlq f i s): returns a left-folded result of the elements of s with initial value i and binary operation f (assumes finite sequence)
 ;; returns f(...f(f(i, x_0), x_1), ... , x_n)
 (define foldlq
-  (lambda (f i s) '()))
+  (letrec
+    ((flq
+        (lambda (f i s)
+          (if(null? s)
+            i
+            (flq f (f i (car s)) ((cdr s)))))))
+    flq))
 
 ; (foldrq f s i): returns a right-folded result of the elements of s with initial value i and binary operation f (assumes finite sequence)
 ;; returns f(x_0, f(x_1, ... f(x_n, i)))
 (define foldrq
-  (lambda (f s i) '()))
+  (letrec
+    ((frq
+        (lambda (f s i)
+          (if (null? s)
+            i
+            (f (car s) (frq f ((cdr s)) i))))))
+    frq))
 
 ; (concatq s1 s2): returns a sequence concatenating the elements of s2 after the elements of s1
 (define concatq
-  (lambda (s1 s2) '()))
+  (letrec
+    ((cq
+        (lambda (s1 s2)
+          (if (null? s2)
+            s1
+            (if (null? s1)
+              (cons (car s2) (lambda () (cq s1 ((cdr s2)))))
+              (cons (car s1) (lambda () (cq ((cdr s1)) s2))))))))
+    cq))
 
 ; (addq s1 s2): returns a sequence adding s1 and s2 element wise, if one sequence is shorter than the other it is viewed as padded with zeroes to match the length
 (define addq
-  (lambda (s1 s2) '()))
+  (letrec
+    ((aq
+        (lambda (s1 s2)
+          (if (and (null? s1) (null? s2))
+            s1
+            (if (null? s1)
+              (cons (car s2) (lambda () (aq s1 ((cdr s2)))))
+              (if(null? s2)
+                (cons (car s1) (lambda () (aq ((cdr s1)) s2)))
+                (cons (+ (car s1) (car s2)) (lambda() (aq ((cdr s1)) ((cdr s2)))))))))))
+
+    aq))
 
 ; (interleaveq s1 s2): returns a sequence of the elements of s1 and s2 interleaved (elements of s1 at even indices and elements of s2 at odd indices), if one sequence ends, continue with the other one
 (define interleaveq
-  (lambda (s1 s2) '()))
+  (letrec
+    ((iq
+        (lambda (s1 s2)
+          (if (and (null? s1) (null? s2))
+            s1
+            (if (null? s1)
+              (cons (car s2) (lambda () (iq s1 ((cdr s2)))))
+              (if (null? s2)
+                (cons (car s1) (lambda () (iq ((cdr s1)) s2)))
+                (cons (car s1) (lambda () (iq s2 ((cdr s1))))))))))) ; Switch the positions of the first and second sequences to get the zipper pattern we want
+    iq))
 
 ; (dropq s n): returns a sequence without first n elements of s
 (define dropq
-  (lambda (s n) '()))
+  (letrec
+    ((dq
+        (lambda (s n)
+          (if (or (null? s) (zero? n))
+            s
+            (dq ((cdr s)) (- n 1)))))) ; The opposite of take
+    dq))
