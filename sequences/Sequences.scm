@@ -95,11 +95,9 @@
   (letrec
     ((cq
         (lambda (s1 s2)
-          (if (null? s2)
-            s1
-            (if (null? s1)
-              s2
-              (cons (car s1) (lambda () (cq ((cdr s1)) s2))))))))
+          (if (null? s1)
+            s2
+            (cons (car s1) (lambda () (cq ((cdr s1)) s2)))))))
     cq))
 
 ; (addq s1 s2): returns a sequence adding s1 and s2 element wise, if one sequence is shorter than the other it is viewed as padded with zeroes to match the length
