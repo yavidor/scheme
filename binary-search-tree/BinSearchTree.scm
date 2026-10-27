@@ -28,33 +28,39 @@
 ; 3. you can check your work by running `scheme BinSearchTreeTests.scm`
 
 ;; (^empty): constructor for empty tree
-(define ^empty (lambda ()
-                (lambda (t) t 'bla 'bla 'bla #t)))
+(define ^empty
+  (lambda ()
+    (lambda (t) t 'bla 'bla 'bla #t)))
 
 ;; (^node v l r): constructor for node holding v with left subtree l and right subtree r
 (define ^node
   (lambda (v l r)
-    (lambda (f) (f v l r #f))))
+    (lambda (f)
+      (f v l r #f))))
 
 ;; (^leaf v): constructor for node holding v with two empty subtrees
 (define ^leaf
   (lambda (v) (^node v (^empty) (^empty))))
 
 ;; (get-val t): value stored at node t
-(define get-val (lambda (t)
-                 (t (lambda (v l r n) v))))
+(define get-val
+  (lambda (t)
+    (t (lambda (v l r n) v))))
 
 ;; (get-left t): left subtree of node t
-(define get-left (lambda (t)
-                  (t (lambda (v l r n) l))))
+(define get-left
+  (lambda (t)
+    (t (lambda (v l r n) l))))
 
 ;; (get-right t): right subtree of node t
-(define get-right (lambda (t)
-                   (t (lambda (v l r n) r))))
+(define get-right
+  (lambda (t)
+    (t (lambda (v l r n) r))))
 
 ;; (empty? t): #t if t is an empty tree (no values), #f otherwise
-(define empty? (lambda (t)
-                (t (lambda (v l r n) n))))
+(define empty?
+  (lambda (t)
+    (t (lambda (v l r n) n))))
 
 ;; (leaf? t): #t if t is a node with no children, #f otherwise (including empty tree)
 (define leaf?
